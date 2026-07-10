@@ -268,9 +268,7 @@
   .carousel-dots{position:absolute;bottom:9px;left:0;right:0;display:flex;justify-content:center;gap:6px;z-index:3;}
   .carousel-dots span{width:6px;height:6px;border-radius:50%;background:#ffffff55;display:block;}
   .carousel-dots span.active{background:var(--rec);}
-  .frame.carousel.playing .carousel-arrow,
-  .frame.carousel.playing .carousel-play,
-  .frame.carousel.playing .carousel-dots{display:none;}
+  .frame.carousel.playing .carousel-play{display:none;}
 
   /* EXPERIENCIA */
   .tl-item{
@@ -439,21 +437,21 @@
 
     <div class="work-card reveal" data-cat="social">
       <div class="frame carousel" data-label=""
-        data-videos='[{"id":"a7_khw0Bdnk","label":"YouTube — Vídeo 1"}]'>
+        data-videos='[{"id":"a7_khw0Bdnk","label":"YouTube — Vídeo 1"},{"id":"nSbrjk0qB3o","label":"YouTube — Vídeo 2"}]'>
       </div>
       <div class="meta"><span class="title">YouTube</span><span class="cat">Social Media</span></div>
     </div>
 
     <div class="work-card reveal" data-cat="social">
       <div class="frame carousel" data-label=""
-        data-videos='[{"id":"gM00UQ8ocQk","label":"Instagram / YouTube — Vídeo 1"}]'>
+        data-videos='[{"id":"gM00UQ8ocQk","label":"Instagram / YouTube — Vídeo 1"},{"id":"8aQ_VJPPdyQ","label":"Instagram / YouTube — Vídeo 2"}]'>
       </div>
       <div class="meta"><span class="title">Instagram / YouTube</span><span class="cat">Social Media</span></div>
     </div>
 
     <div class="work-card reveal" data-cat="publicidade">
       <div class="frame carousel" data-label=""
-        data-videos='[{"id":"1g5nAivf3bc","label":"Academia — Vídeo 1"},{"id":"lgbPU1nBqMI","label":"Academia — Vídeo 2"}]'>
+        data-videos='[{"id":"KmzIYWti0A0","label":"Academia — Vídeo 1"},{"id":"1g5nAivf3bc","label":"Academia — Vídeo 2"},{"id":"lgbPU1nBqMI","label":"Academia — Vídeo 3"}]'>
       </div>
       <div class="meta"><span class="title">Academia</span><span class="cat">Publicidade</span></div>
     </div>
@@ -670,26 +668,39 @@ Atuo em projetos de publicidade, e-commerce, entretenimento e educação, produz
         dots.appendChild(d);
       });
 
+      let playing = false;
+      let iframeEl = null;
+
       frame.append(thumb, playBtn, prevBtn, nextBtn, dots);
       if(videos.length <= 1){ prevBtn.style.display='none'; nextBtn.style.display='none'; dots.style.display='none'; }
 
       function render(){
         const v = videos[index];
-        thumb.src = `https://img.youtube.com/vi/${v.id}/hqdefault.jpg`;
-        thumb.alt = v.label || '';
         frame.setAttribute('data-label', v.label || '');
         [...dots.children].forEach((d,i)=> d.classList.toggle('active', i===index));
+        if(playing){
+          // vídeo já tocando: troca o iframe pro vídeo atual sem perder as setas/pontinhos
+          iframeEl.src = `https://www.youtube.com/embed/${v.id}?autoplay=1`;
+          iframeEl.title = v.label || '';
+        } else {
+          thumb.src = `https://img.youtube.com/vi/${v.id}/hqdefault.jpg`;
+          thumb.alt = v.label || '';
+        }
       }
       function play(){
-        const v = videos[index];
-        const iframe = document.createElement('iframe');
-        iframe.src = `https://www.youtube.com/embed/${v.id}?autoplay=1`;
-        iframe.title = v.label || '';
-        iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
-        iframe.allowFullscreen = true;
-        frame.innerHTML = '';
-        frame.appendChild(iframe);
+        if(playing) return;
+        playing = true;
         frame.classList.add('playing');
+        const v = videos[index];
+        iframeEl = document.createElement('iframe');
+        iframeEl.src = `https://www.youtube.com/embed/${v.id}?autoplay=1`;
+        iframeEl.title = v.label || '';
+        iframeEl.allow = 'autoplay; encrypted-media; picture-in-picture';
+        iframeEl.allowFullscreen = true;
+        thumb.style.display = 'none';
+        // o iframe entra atrás das setas/pontinhos (que têm position:absolute e z-index),
+        // então elas continuam clicáveis por cima do vídeo.
+        frame.insertBefore(iframeEl, playBtn);
       }
 
       playBtn.addEventListener('click', play);
